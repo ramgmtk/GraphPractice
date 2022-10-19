@@ -1,6 +1,7 @@
 #ifndef STRUCTURE_H
 #define STRUCTURE_H
 #include <unordered_map>
+#include <string>
 
 //queue class
 template <class U>
@@ -43,22 +44,21 @@ U queue<U>::dequeue() {
 template <class U>
 queue<U>::~queue() {
     try {
-        while () this->dequeue();
-    } catch(const std::domain_error& msg)
+        while (true) this->dequeue();
+    } catch(const std::domain_error& msg) {}
     delete this->head;
 }
 
 //graph class as represtented by an adjacency list
-template <class T>
 class graph {
     private:
-        std::unordered_map<T, std::unordered_map<T, int>> adjacency_list;
+        std::unordered_map<std::string, std::unordered_map<std::string, int>> adjacency_list;
     protected:
-        std::unordered_map<T, T> bfs();
+        std::unordered_map<std::string, std::string> bfs();
     public:
-        void insert(const int&);
+        void insert(const std::string&);
         void print();
-        void find_path(const T&, const T&);
+        void find_path(const std::string&, const std::string&);
 };
 
 #endif
