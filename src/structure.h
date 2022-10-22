@@ -8,10 +8,8 @@ template <class U>
 class queue {
     private:
         struct node {
-            private:
                 U data;
                 node* next;
-            public:
                 node() : next(nullptr) {}
                 node(const U& d) : data(d), next(nullptr) {}
         };
@@ -19,6 +17,7 @@ class queue {
     public:
         queue() : head(new node()) {}
         ~queue();
+        bool is_empty();
         void enqueue(const U&);
         U dequeue();
 };
@@ -42,6 +41,12 @@ U queue<U>::dequeue() {
 }
 
 template <class U>
+bool queue<U>::is_empty() {
+    if (this->head->next) return false; 
+    else return true; 
+}
+
+template <class U>
 queue<U>::~queue() {
     try {
         while (true) this->dequeue();
@@ -54,11 +59,11 @@ class graph {
     private:
         std::unordered_map<std::string, std::unordered_map<std::string, int>> adjacency_list;
     protected:
-        std::unordered_map<std::string, std::string> bfs();
+        std::unordered_map<std::string, std::string> bfs(const std::string&, const std::string& = std::string());
     public:
         void insert(const std::string&);
         void print();
         void find_path(const std::string&, const std::string&);
 };
-
+ 
 #endif
