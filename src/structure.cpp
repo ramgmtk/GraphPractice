@@ -2,6 +2,10 @@
 #include <sstream>
 #include <iostream>
 
+//priority queue methods
+
+
+//graph methods
 //all values on the line are treated as neighbors of one another.
 void graph::insert(const std::string& line) {
     std::string node, neighbor, parse_line;

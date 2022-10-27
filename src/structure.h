@@ -1,6 +1,7 @@
 #ifndef STRUCTURE_H
 #define STRUCTURE_H
 #include <unordered_map>
+#include <vector>
 #include <string>
 
 //queue class
@@ -64,6 +65,16 @@ class graph {
         void insert(const std::string&);
         void print();
         void find_path(const std::string&, const std::string&);
+};
+
+//priotity queue implemented using a max heap
+class p_queue {
+    private:
+        std::vector<std::pair<std::string, int>> max_heap;
+        unsigned int size;
+    public:
+        p_queue();
+        friend class graph;
 };
  
 #endif
