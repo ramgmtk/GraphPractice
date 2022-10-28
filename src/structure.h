@@ -74,6 +74,11 @@ class p_queue {
         unsigned int size;
     public:
         p_queue();
+        std::pair<std::string, int> extract_max();
+        void heapify(int);
+        void insert(std::pair<std::string, int>);
+        void increase_key(int, int);
+        void swap(int, int);
         friend class graph;
 };
  
