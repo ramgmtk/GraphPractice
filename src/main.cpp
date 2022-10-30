@@ -17,17 +17,6 @@ int main(int argc, char** argv) {
     g.print();
     g.find_path("1", "9");
 
-    /*std::string s;
-    std::cout << line << std::endl;
-    std::stringstream ss, sss;
-    ss.str(line);
-    std::getline(ss, s, ' ');
-    std::cout << s << std::endl;
-    std::cout << ss.str() << std::endl;
-    std::getline(ss, s);
-    std::cout << s << std::endl;
-    std::cout << ss.str() << std::endl;*/
-
     system("pause");
     return 0;
 }
