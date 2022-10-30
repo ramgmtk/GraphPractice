@@ -2,6 +2,7 @@
 #include <sstream>
 #include <iostream>
 
+#define INT_MAX 2147483647
 //priority queue methods
 p_queue::p_queue() {
     this->size = 0;
@@ -9,22 +10,22 @@ p_queue::p_queue() {
 }
 
 void p_queue::swap(int index1, int index2) {
-    std::pair to_swap = this->max_heap[index1];
+    std::pair<std::string, int> to_swap = this->max_heap[index1];
     this->max_heap[index1] = this->max_heap[index2];
     this->max_heap[index2] = to_swap;
 }
 
 void p_queue::heapify(int i) {
-    unsigned int child_index = 0;
-    if (2*i <= this->size && this->max_heap[i].second >= this->max_heap[2*i].second) child_index = 2*i;
-    if (2*i+1 <= this->size && this->max_heap[i].second >= this->max_heap[2*i+1].second) child_index = 2*i+1;
-    if (!child_index) return; //we do not heapify if we are at a valid heap/leaf node.
-    child_index = this->max_heap[2*i] > this->max_heap[2*i+1] ? 2 * i : 2 * 1 + 1;
+    unsigned int child_index = i;
+    if (2*i <= this->size && this->max_heap[child_index].second > this->max_heap[2*i].second) child_index = 2*i;
+    if (2*i+1 <= this->size && this->max_heap[child_index].second > this->max_heap[2*i+1].second) child_index = 2*i+1;
+    if (child_index == i) return; //we do not heapify if we are at a valid heap/leaf node.
+    //child_index = this->max_heap[2*i] > this->max_heap[2*i+1] ? 2 * i : 2 * 1 + 1;
     this->swap(child_index, i);
     this->heapify(child_index);
 }
 
-std::pair<std::string, int> p_queue::extract_max() {
+std::pair<std::string, int> p_queue::extract_min() {
     if (this->size < 1) return this->max_heap[0];
     std::pair<std::string, int> return_value = this->max_heap[1];
     this->max_heap[1] = this->max_heap[this->size];
@@ -36,14 +37,14 @@ std::pair<std::string, int> p_queue::extract_max() {
 
 void p_queue::increase_key(int i, int weight) {
     this->max_heap[i].second = weight;
-    while (i != 1 && this->max_heap[i/2].second < this->max_heap[i].second) {
+    while (i != 1 && this->max_heap[i/2].second > this->max_heap[i].second) {
         this->swap(i, i/2);
         i = i/2;
     }
 }
 
 void p_queue::insert(std::pair<std::string, int> new_insert) {
-    this->max_heap.push_back(std::make_pair(new_insert.first, INT_MIN));
+    this->max_heap.push_back(std::make_pair(new_insert.first, INT_MAX));
     this->size+=1;
     this->increase_key(this->size, new_insert.second);
 }
@@ -51,19 +52,20 @@ void p_queue::insert(std::pair<std::string, int> new_insert) {
 //graph methods
 //all values on the line are treated as neighbors of one another.
 void graph::insert(const std::string& line) {
-    std::string node, neighbor, parse_line;
+    std::string node, neighbor, weight;
     std::stringstream ssone;
     ssone.str(line); 
-
+    std::getline(ssone, weight, ' ');
     while (std::getline(ssone, node, ' ')) {
         std::stringstream sstwo;
         sstwo.str(ssone.str());
+        sstwo.rdbuf()->pubseekpos(2);
         while (std::getline(sstwo, neighbor, ' ')) {
             //check i think is unecessary beacuse unordered map handles duplicate cases. though duplicates will overwrite.
             //however running into issues with stringstream and modifying the stream mid loop. therefore we perform the check.
             if (node.compare(neighbor) == 0) continue;
             if (this->adjacency_list[node].find(neighbor) == adjacency_list[node].end()) { 
-                this->adjacency_list[node].insert({neighbor, 0});
+                this->adjacency_list[node].insert({neighbor, std::stoi(weight)});
                 //this->adjacency_list[neighbor].insert({node, 0});
             }
         }
@@ -104,6 +106,37 @@ std::unordered_map<std::string, std::string> graph::bfs(const std::string& start
         }
     }
     delete to_visit;
+    return pred;
+}
+
+//we find a linear path
+std::unordered_map<std::string, std::string> graph::dijkstra(const std::string& start, const std::string* goals) {
+    if (this->adjacency_list.count(start) == 0) return std::unordered_map<std::string, std::string>();
+    p_queue to_visit;
+    std::unordered_map<std::string, std::string> pred;
+    //std::unordered_map<std::string, bool> visited; //visited is useful for bfs so we dont revisit nodes. however for dijkstra's we may revisit a node.
+    std::unordered_map<std::string, int> path_cost;
+    for (auto& pair : this->adjacency_list) {
+        pred.insert({pair.first, std::string()});
+        path_cost.insert({pair.first, INT_MAX}); //max value for nodes we have yet to visit.
+    }
+    path_cost[start] = 0;
+    to_visit.enqueue(std::make_pair(start, path_cost[start]));
+    while (!to_visit.is_empty()) {
+        std::pair<std::string, int> curr = to_visit.dequeue();
+        //perform check to see if we have visited all goals.
+
+        for (auto& neighbor : this->adjacency_list[curr.first]) {
+            //logic that follows is larger weights on a path means the path is more desirable.
+            int cost = curr.second + neighbor.second;
+            //have we found a faster path?
+            if (path_cost[neighbor.first] > cost) {
+                pred[neighbor.first] = curr.first;
+                path_cost[neighbor.first] = cost;
+                to_visit.enqueue(std::make_pair(neighbor.first, cost));
+            }
+        }
+    }
     return pred;
 }
 
