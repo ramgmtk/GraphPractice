@@ -15,7 +15,9 @@ int main(int argc, char** argv) {
     while(std::getline(infile, line, '\n')) g.insert(line);
     infile.close();
     g.print();
-    g.find_path("1", "9");
+    //g.find_path("1", "9");
+    std::string x[] = {"2", "8"};
+    g.map_path("1", x);
 
     system("pause");
     return 0;

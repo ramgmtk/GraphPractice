@@ -61,17 +61,18 @@ class graph {
         std::unordered_map<std::string, std::unordered_map<std::string, int>> adjacency_list;
     protected:
         std::unordered_map<std::string, std::string> bfs(const std::string&, const std::string& = std::string());
-        std::unordered_map<std::string, std::string> dijkstra(const std::string&, const std::string*);
+        std::string dijkstra(const std::string&, const std::string*);
     public:
         void insert(const std::string&);
         void print();
         void find_path(const std::string&, const std::string&);
+        void map_path(const std::string&, const std::string*);
 };
 
 //priotity queue implemented using a mix heap
 class p_queue {
     private:
-        std::vector<std::pair<std::string, int>> max_heap;
+        std::vector<std::pair<std::string, int>> heap;
         unsigned int size;
     protected:
         void insert(std::pair<std::string, int>);
@@ -84,6 +85,7 @@ class p_queue {
         void increase_key(int, int);
         void swap(int, int);
         bool is_empty() { if (this->size == 0) return true; else return false; }
+        void print();
         friend class graph;
 };
  
