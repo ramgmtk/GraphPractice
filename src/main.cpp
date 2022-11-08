@@ -17,7 +17,7 @@ int main(int argc, char** argv) {
     g.print();
     //g.find_path("1", "9");
     std::string x[] = {"2", "8"};
-    g.map_path("1", x);
+    g.map_path("1", "8");
 
     system("pause");
     return 0;

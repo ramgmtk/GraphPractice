@@ -120,41 +120,22 @@ std::unordered_map<std::string, std::string> graph::bfs(const std::string& start
 //INCOMPLETE
 //LOGIC ERROR. WHEN USING 1 -> {2, 8}  WE FIND THE SHORTEST PATH FROM 1 TO 2 AND 1 TO 8. NOT THE PATH
 //WHICH INCLUDES 1, 2, 8;
-std::string graph::dijkstra(const std::string& start, const std::string* goals) {
-    if (this->adjacency_list.count(start) == 0) return std::string();
+std::unordered_map<std::string, std::string> graph::dijkstra(const std::string& start, const std::string& goal) {
+    if (this->adjacency_list.count(start) == 0) std::unordered_map<std::string, std::string>();
     p_queue to_visit;
     std::unordered_map<std::string, std::string> pred;
-    std::unordered_map<std::string, bool> visited; //visited is useful for bfs so we dont revisit nodes. however for dijkstra's we may revisit a node.
     std::unordered_map<std::string, int> path_cost;
     for (auto& pair : this->adjacency_list) {
         pred.insert({pair.first, std::string()});
         path_cost.insert({pair.first, INT_MAX}); //max value for nodes we have yet to visit.
-        visited.insert({pair.first, false});
     }
 
     path_cost[start] = 0;
     to_visit.enqueue(std::make_pair(start, path_cost[start]));
     while (!to_visit.is_empty()) {
         std::pair<std::string, int> curr = to_visit.dequeue();
-        visited[curr.first] = true;
         //perform check to see if we have visited all goals.
-        bool found = false;
-        for (int i = 0; i < 2; i++) { //HARD CODED 2 MUST BE FIXED
-            if (visited[goals[i]]) found = true;
-            else  {
-                found = false;
-                break;
-            }
-        }
-        if (found) { //we assume curr is the last point in the goal given the check in the above loop
-            std::string value = curr.first;
-            std::string result = value;
-            while (value != std::string()) {
-                result = pred[value] + ":" + result;
-                value = pred[value];
-            }
-            return result;
-        }
+        if (curr.first.compare(goal) == 0) return pred;
 
         for (auto& neighbor : this->adjacency_list[curr.first]) {
             //logic that follows is smaller weights on a path means the path is more desirable.
@@ -167,7 +148,7 @@ std::string graph::dijkstra(const std::string& start, const std::string* goals) 
             }
         }
     }
-    return std::string();
+    return pred;
 }
 
 //throws error of node does not exist in graph
@@ -182,7 +163,13 @@ void graph::find_path(const std::string& start, const std::string& end) {
     std::cout << result << std::endl;
 }
 
-void graph::map_path(const std::string& start, const std::string* goals) {
-    std::string x = this->dijkstra(start, goals);
-    if (x != std::string()) std::cout << x << std::endl;
+void graph::map_path(const std::string& start, const std::string& goal) {
+    auto x = this->dijkstra(start, goal);
+    std::string result = "";
+    std::string value = goal;
+    while (value != std::string()) {
+        result = ":" + value + result;
+        value = x.at(value);
+    }
+    std::cout << result << std::endl;
 }
