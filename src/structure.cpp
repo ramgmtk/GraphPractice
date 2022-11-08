@@ -48,7 +48,6 @@ void p_queue::insert(std::pair<std::string, int> new_insert) {
     this->heap.push_back(std::make_pair(new_insert.first, INT_MAX));
     this->size+=1;
     this->increase_key(this->size, new_insert.second);
-    this->print();
 }
 void p_queue::print() {
     for (int i = 1; i <= this->size; i++) {
