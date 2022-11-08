@@ -3,58 +3,6 @@
 #include <iostream>
 
 #define INT_MAX 2147483647
-//priority queue methods
-p_queue::p_queue() {
-    this->size = 0;
-    this->heap.push_back(std::make_pair(std::string(), 0));
-}
-
-void p_queue::swap(int index1, int index2) {
-    std::pair<std::string, int> to_swap = this->heap[index1];
-    this->heap[index1] = this->heap[index2];
-    this->heap[index2] = to_swap;
-}
-
-void p_queue::heapify(int i) {
-    unsigned int child_index = i;
-    if (2*i <= this->size && this->heap[child_index].second > this->heap[2*i].second) child_index = 2*i;
-    if (2*i+1 <= this->size && this->heap[child_index].second > this->heap[2*i+1].second) child_index = 2*i+1;
-    if (child_index == i) return; //we do not heapify if we are at a valid heap/leaf node.
-    //child_index = this->heap[2*i] > this->heap[2*i+1] ? 2 * i : 2 * 1 + 1;
-    this->swap(child_index, i);
-    this->heapify(child_index);
-}
-
-std::pair<std::string, int> p_queue::extract_min() {
-    if (this->size < 1) return this->heap[0];
-    std::pair<std::string, int> return_value = this->heap[1];
-    this->heap[1] = this->heap[this->size];
-    this->size--;
-    this->heap.pop_back();
-    this->heapify(1);
-    this->print();
-    return return_value;
-}
-
-void p_queue::increase_key(int i, int weight) {
-    this->heap[i].second = weight;
-    while (i != 1 && this->heap[i/2].second > this->heap[i].second) {
-        this->swap(i, i/2);
-        i = i/2;
-    }
-}
-
-void p_queue::insert(std::pair<std::string, int> new_insert) {
-    this->heap.push_back(std::make_pair(new_insert.first, INT_MAX));
-    this->size+=1;
-    this->increase_key(this->size, new_insert.second);
-}
-void p_queue::print() {
-    for (int i = 1; i <= this->size; i++) {
-        std::cout << "(" << this->heap[i].first << "," << this->heap[i].second << "):";
-    }
-    std::cout << std::endl;
-}
 
 //graph methods
 //all values on the line are treated as neighbors of one another.
@@ -121,7 +69,7 @@ std::unordered_map<std::string, std::string> graph::bfs(const std::string& start
 //WHICH INCLUDES 1, 2, 8;
 std::unordered_map<std::string, std::string> graph::dijkstra(const std::string& start, const std::string& goal) {
     if (this->adjacency_list.count(start) == 0) std::unordered_map<std::string, std::string>();
-    p_queue to_visit;
+    p_queue<std::string> to_visit;
     std::unordered_map<std::string, std::string> pred;
     std::unordered_map<std::string, int> path_cost;
     for (auto& pair : this->adjacency_list) {
