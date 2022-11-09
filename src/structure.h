@@ -5,6 +5,7 @@
 #include <string>
 
 #define INT_MAX 2147483647
+using dijkstra_return = std::pair<std::unordered_map<std::string, std::string>, int>;
 
 //queue class
 template <class U>
@@ -63,7 +64,7 @@ class graph {
         std::unordered_map<std::string, std::unordered_map<std::string, int>> adjacency_list;
     protected:
         std::unordered_map<std::string, std::string> bfs(const std::string&, const std::string& = std::string());
-        std::unordered_map<std::string, std::string> dijkstra(const std::string&, const std::string&);
+        dijkstra_return dijkstra(const std::string&, const std::string&);
         std::string super_dijkstra(const std::string&, std::vector<std::string>);
     public:
         void insert(const std::string&);

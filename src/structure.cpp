@@ -2,8 +2,6 @@
 #include <sstream>
 #include <iostream>
 
-#define INT_MAX 2147483647
-
 //graph methods
 //all values on the line are treated as neighbors of one another.
 void graph::insert(const std::string& line) {
@@ -67,7 +65,7 @@ std::unordered_map<std::string, std::string> graph::bfs(const std::string& start
 //INCOMPLETE
 //LOGIC ERROR. WHEN USING 1 -> {2, 8}  WE FIND THE SHORTEST PATH FROM 1 TO 2 AND 1 TO 8. NOT THE PATH
 //WHICH INCLUDES 1, 2, 8;
-std::unordered_map<std::string, std::string> graph::dijkstra(const std::string& start, const std::string& goal) {
+dijkstra_return graph::dijkstra(const std::string& start, const std::string& goal) {
     if (this->adjacency_list.count(start) == 0) std::unordered_map<std::string, std::string>();
     p_queue<std::string> to_visit;
     std::unordered_map<std::string, std::string> pred;
@@ -82,7 +80,7 @@ std::unordered_map<std::string, std::string> graph::dijkstra(const std::string& 
     while (!to_visit.is_empty()) {
         std::pair<std::string, int> curr = to_visit.dequeue();
         //perform check to see if we have visited all goals.
-        if (curr.first.compare(goal) == 0) return pred;
+        if (curr.first.compare(goal) == 0) return std::make_pair(pred, curr.second);
 
         for (auto& neighbor : this->adjacency_list[curr.first]) {
             //logic that follows is smaller weights on a path means the path is more desirable.
@@ -95,7 +93,7 @@ std::unordered_map<std::string, std::string> graph::dijkstra(const std::string& 
             }
         }
     }
-    return pred;
+    return std::make_pair(pred, INT_MAX);
 }
 
 //throws error of node does not exist in graph
@@ -116,7 +114,7 @@ void graph::map_path(const std::string& start, const std::string& goal) {
     std::string value = goal;
     while (value != std::string()) {
         result = ":" + value + result;
-        value = x.at(value);
+        value = x.first.at(value);
     }
     std::cout << result << std::endl;
 }
