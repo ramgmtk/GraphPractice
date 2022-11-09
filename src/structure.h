@@ -5,7 +5,9 @@
 #include <string>
 
 #define INT_MAX 2147483647
-using dijkstra_return = std::pair<std::unordered_map<std::string, std::string>, int>;
+using path_map = std::unordered_map<std::string, std::string>;
+class pred_map;
+using dijkstra_return = std::pair<pred_map, int>;
 
 //queue class
 template <class U>
@@ -58,12 +60,22 @@ queue<U>::~queue() {
     delete this->head;
 }
 
+//our own unordered map for easier map comparision
+class pred_map : public path_map {
+    public:
+        //this is a constant method to allow a const pathj_map to call it from the friend function.
+        //credit to user john: https://stackoverflow.com/questions/13103755/intellisense-the-object-has-type-qualifiers-that-are-not-compatible-with-the-me
+        bool contains_same(const pred_map&) const;
+        friend bool operator==(const pred_map&, const pred_map&);
+        friend bool operator!=(const pred_map&, const pred_map&);
+};
+
 //graph class as represtented by an adjacency list
 class graph {
     private:
         std::unordered_map<std::string, std::unordered_map<std::string, int>> adjacency_list;
     protected:
-        std::unordered_map<std::string, std::string> bfs(const std::string&, const std::string& = std::string());
+        pred_map bfs(const std::string&, const std::string& = std::string());
         dijkstra_return dijkstra(const std::string&, const std::string&);
         std::string super_dijkstra(const std::string&, std::vector<std::string>);
     public:
