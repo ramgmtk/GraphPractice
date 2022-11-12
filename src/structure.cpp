@@ -6,7 +6,10 @@
 bool pred_map::contains_same(const pred_map& rhs) const {
     std::cout << "using overloaded pred_map comparison" << std::endl;
     for (auto& kv : rhs) {
-        if (this->count(kv.first) == 0) return false;
+        std::cout << "rhskey:value :: " << kv.first << ":" << kv.second << std::endl;
+        std::cout << "lhskey:value :: " << kv.first << ":" << this->at(kv.first) << std::endl;
+        if (this->count(kv.first) == 0 || this->at(kv.first) != kv.second) 
+            return false;
     }
     return true; 
 }
@@ -18,6 +21,7 @@ bool operator==(const pred_map& lhs, const pred_map& rhs) {
 bool operator!=(const pred_map& lhs, const pred_map& rhs) {
     return !lhs.contains_same(rhs);
 }
+
 //graph methods
 //all values on the line are treated as neighbors of one another.
 void graph::insert(const std::string& line) {
@@ -135,68 +139,95 @@ void graph::map_path(const std::string& start, const std::string& goal) {
     std::cout << result << std::endl;
 }
 
-//VERY INTENSIVE B/C LOTS OF MAPS BEING STORED. WOULD BE WORTHWHILE TO MAKE AN INHEIRITED MAP CLASS TO 
-//HAVE OUR OWN VERSION  OF OPERATOR== FOR MAPS BECAUSE WE ARE ONLY CONCERNED WITH COMPARING KEYS NOT
-//NOT BOTH IF MAPS ARE PERMUTATIONS OF OTHER MAPS
+//super dijkstra's for finding multiple paths
 std::string graph::super_dijkstra(const std::string& start, std::vector<std::string> goals) {
-    /*if (this->adjacency_list.count(start) == 0) return std::string();
-    p_queue<std::pair<std::string, pred_map>> v;
+    if (this->adjacency_list.count(start) == 0) return std::string();
+    p_queue<std::pair<std::string, std::pair<pred_map, visited_map>>> v;
+    //note a map using a map has a key requires the creation of a hashing function for said map:
+    //https://stackoverflow.com/questions/51220257/compilation-error-related-to-map-and-unordered-map-attempting-to-reference-a-d 
     std::unordered_map<pred_map, pred_map> pred;
     std::unordered_map<pred_map, int> path_cost;
 
-    v.enqueue(std::make_pair(make_pair(start, pred_map()), 0));
+    v.enqueue(std::make_pair(std::make_pair(start, std::make_pair(pred_map(), visited_map())), 0));
     while (!v.is_empty()) {
         auto curr = v.dequeue();
 
         //check if done going through all goals.
         bool finished = true;
         for (auto& goal : goals) {
-            if (curr.first.second.count(goal) == 0) finished = false;
+            if (curr.first.second.first.count(goal) == 0) finished = false;
         }
         if (finished) {
-            //IMPORTANT LOGIC ERROR. PRED DOES NOT ALLOW FOR A PATH TO HAVE TWO PREDECESSORS.
-            return std::string();
+            pred_map& curr_pred = curr.first.second.first;
+            std::string value = curr.first.first;
+            std::string result = value + result;
+            while (curr_pred != pred_map()) {
+                while (curr_pred[value] != std::string()) {
+                    value = curr_pred[value];
+                    result = value + result;
+                }
+                curr_pred = pred[curr_pred];
+                value = curr_pred[value];
+            }
+            return result;
         }
 
         //perform goals run
         for (auto& goal : goals) {
-            //if we are a goal trying to reach itself or a goal we have already reached
-            if (curr.first.first == goal || curr.first.second.count(goal) == 0) continue;
-            dijkstra_return value = this->dijkstra(curr.first.first, goal);
+            visited_map curr_visited = curr.first.second.second;
+            //if we are a goal trying to reach itself or a goal we have already reached along the path to another goal
+            //previos error now resolved: 
+            //EACH PRED DOES NOT NECESSARY INCLUDE THE PREVIOUS GOALS TRAVERSED. THOSE GOALS ARE UNKOWN TO THE PRED ARRAY EVEN IF THEY ARE ON THE PREDICTED PATH.
+            //so we might have to pass a visited map. curr.first.second.second references visited.
+            if (curr.first.first == goal || curr_visited.count(goal) != 0) continue;
+            dijkstra_return value = this->dijkstra_returning_visited(curr.first.first, goal, curr_visited);
             int cost = value.second + curr.second;
+            //issues comes herre the pred map evaluated from 1->2 is being considered the same as 1->8
+            //consider changing indexing from pred map to the visited map instead.
             if (path_cost.count(value.first) == 0 || path_cost[value.first] > cost) {
-                pred[value.first] = curr.first.second;
+                pred[value.first] = curr.first.second.first;
                 path_cost[value.first] = cost;
-                v.enqueue(std::make_pair(std::make_pair(goal, value.first), cost));
+                v.enqueue(std::make_pair(std::make_pair(goal, std::make_pair(value.first, curr_visited)), cost));
             }
         }
 
-    }*/
+    }
     return std::string();
 }
 
-/*
-function header(start, goals) {
-    check empty adjacency list
-    priority<pair(new_start, predecessor)> v
+dijkstra_return graph::dijkstra_returning_visited
+(const std::string& start, const std::string& goal, visited_map& visited) {
+    if (this->adjacency_list.count(start) == 0) return make_pair(pred_map(), INT_MAX);
+    p_queue<std::string> to_visit;
+    pred_map pred;
+    std::unordered_map<std::string, int> path_cost;
+    for (auto& pair : this->adjacency_list) {
+        pred.insert({pair.first, std::string()});
+        path_cost.insert({pair.first, INT_MAX}); //max value for nodes we have yet to visit.
+    }
 
-    //do not initialize these like idjkstra
-    pred which points to the current predecessor array being worked on
-    cost which will contain costs of paths not individual nodes
-
-    enqueue(<start, pred>, 0)
-    while v not empty
-        curr = dequeue;
-        for (all goal in goals) if all goals exists in curr.pred
-            calculate path and rteurn string?
-        for (all goals in goal)
-            if (curr.new_start == goal || curr.pred[goal] exists) continue;
-            value = dijstra's on curr.new_start(goal)
-            if cost[value.pred] does not exist or cost[value.pred] > value.cost + curr.second
-                cost[value.pred] = value.cost + curr.second
-                v.enqueue(<goal, value.pred>, cost[value.pred])
-    
-    return default std::string?
-    
+    path_cost[start] = 0;
+    to_visit.enqueue(std::make_pair(start, path_cost[start]));
+    while (!to_visit.is_empty()) {
+        std::pair<std::string, int> curr = to_visit.dequeue();
+        visited[curr.first] = true;
+        //perform check to see if we have visited all goals.
+        if (curr.first.compare(goal) == 0) return std::make_pair(pred, curr.second);
+        for (auto& neighbor : this->adjacency_list[curr.first]) {
+            //logic that follows is smaller weights on a path means the path is more desirable.
+            int cost = curr.second + neighbor.second;
+            //have we found a faster path?
+            if (path_cost[neighbor.first] > cost) {
+                pred[neighbor.first] = curr.first;
+                path_cost[neighbor.first] = cost;
+                to_visit.enqueue(std::make_pair(neighbor.first, cost));
+            }
+        }
+    }
+    return std::make_pair(pred, INT_MAX);
 }
-*/
+
+void graph::map_whole_path(const std::string& start, std::vector<std::string> goals) {
+    std::string result = this->super_dijkstra(start, goals);
+    std::cout << result << std::endl;
+}

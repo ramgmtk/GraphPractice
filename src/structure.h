@@ -6,6 +6,7 @@
 
 #define INT_MAX 2147483647
 using path_map = std::unordered_map<std::string, std::string>;
+using visited_map = std::unordered_map<std::string, bool>;
 class pred_map;
 using dijkstra_return = std::pair<pred_map, int>;
 
@@ -68,7 +69,37 @@ class pred_map : public path_map {
         bool contains_same(const pred_map&) const;
         friend bool operator==(const pred_map&, const pred_map&);
         friend bool operator!=(const pred_map&, const pred_map&);
+
 };
+//https://stackoverflow.com/questions/51220257/compilation-error-related-to-map-and-unordered-map-attempting-to-reference-a-d 
+//user john Zwinck
+template <class T>
+void hash_combine(std::size_t&, T const&);
+namespace std
+{
+    template<>
+    struct hash<pred_map>
+    {
+        typedef pred_map argument_type;
+        typedef std::size_t result_type;
+        result_type operator()(pred_map const& in) const
+        {
+            size_t size = in.size();
+            size_t seed = 0;
+            for (auto& kv : in) {
+                //https://stackoverflow.com/questions/23833179/stdmap-access-operator-deprecated-no-operator-matches-these-operands
+                //we use map.at instead of '[]' because we do not have a const overload for '[]'.
+                hash_combine(seed, in.at(kv.first));
+            }
+            return seed;
+        }
+    };
+}
+
+template <class T>
+inline void hash_combine(std::size_t& seed, T const& v) {
+    seed ^= std::hash<T>()(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+}
 
 //graph class as represtented by an adjacency list
 class graph {
@@ -78,11 +109,13 @@ class graph {
         pred_map bfs(const std::string&, const std::string& = std::string());
         dijkstra_return dijkstra(const std::string&, const std::string&);
         std::string super_dijkstra(const std::string&, std::vector<std::string>);
+        dijkstra_return dijkstra_returning_visited(const std::string&, const std::string&, std::unordered_map<std::string, bool>&);
     public:
         void insert(const std::string&);
         void print();
         void find_path(const std::string&, const std::string&);
         void map_path(const std::string&, const std::string&);
+        void map_whole_path(const std::string&, std::vector<std::string>);
 };
 
 //priotity queue implemented using a mix heap
