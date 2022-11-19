@@ -139,6 +139,59 @@ void graph::map_path(const std::string& start, const std::string& goal) {
     std::cout << result << std::endl;
 }
 
+void graph::map_whole_path(const std::string& start, std::vector<std::string> goals) {
+    std::string result = this->super_dijkstra(start, goals);
+    std::cout << result << std::endl;
+}
+
+//IMPORTANT CONSTRAINT FOR THIS FUNCTION
+//we utilize a string as a containter for each of the nodes we are looking for. The error with this method is that
+//supppose we are looking are "1", but the node we have in the string is "13"; "1" will be evaluated as found in the string.
+//we could rectify this by having string values be "," separated in the starting string.
+std::string graph::super_dijkstra(const std::string& start, std::vector<std::string> goals) {
+    if (this->adjacency_list.count(start) == 0) return std::string("Graph not initialized.");
+    p_queue<std::pair<std::string, std::string>> to_visit;
+    std::unordered_map<std::string, int> path_cost;
+
+    path_cost[start+","] = 0;
+    to_visit.enqueue(std::make_pair(std::make_pair(start, start+","), 0));
+    while (!to_visit.is_empty()) {
+        //curr is pair<vector, int>
+        auto curr = to_visit.dequeue();
+        bool finished = true;
+        for (std::string& goal : goals) {
+            if (curr.first.second.find(goal+",") == std::string::npos) finished = false;
+        }
+        if (finished) {
+            return curr.first.second;
+        } else {
+            for (std::string& goal : goals) {
+                //curr issues what if the path 1->8 includes a goal? this string does not contain that so we need to check the pred array
+                if (curr.first.second.find(goal+",") != std::string::npos) continue;
+                dijkstra_return curr_path = this->dijkstra(curr.first.first, goal);
+
+                //setup proper path and cost
+                int cost = curr_path.second + curr.second;
+                std::string path = "";
+                std::string step = goal;
+                //this is where we check the pred array to deal with the problem above
+                while (curr_path.first[step] != std::string()) {
+                    path = step + "," + path;
+                    step = curr_path.first[step];
+                }
+                path = curr.first.second + path;
+                if (path_cost.count(path) == 0 || path_cost[path] > cost) {
+                    path_cost[path] = cost;
+                    to_visit.enqueue(std::make_pair(std::make_pair(goal, path), cost));
+                }
+            }
+        }
+    }
+    return std::string("Path not found.");
+}
+
+/*old super dijkstra
+//consider reqriting this whole function to use a string/vector as a key
 //super dijkstra's for finding multiple paths
 std::string graph::super_dijkstra(const std::string& start, std::vector<std::string> goals) {
     if (this->adjacency_list.count(start) == 0) return std::string();
@@ -182,9 +235,15 @@ std::string graph::super_dijkstra(const std::string& start, std::vector<std::str
             if (curr.first.first == goal || curr_visited.count(goal) != 0) continue;
             dijkstra_return value = this->dijkstra_returning_visited(curr.first.first, goal, curr_visited);
             int cost = value.second + curr.second;
-            //issues comes herre the pred map evaluated from 1->2 is being considered the same as 1->8
+            //ERROR issues comes herre the pred map evaluated from 1->2 is being considered the same as 1->8
             //consider changing indexing from pred map to the visited map instead.
-            if (path_cost.count(value.first) == 0 || path_cost[value.first] > cost) {
+            //WE HAVE SPLIT THE IF STATEMENT TO CONFIRM THE ABOVE THOERY
+            if (path_cost.count(value.first) == 0) {
+                pred[value.first] = curr.first.second.first;
+                path_cost[value.first] = cost;
+                v.enqueue(std::make_pair(std::make_pair(goal, std::make_pair(value.first, curr_visited)), cost));
+            }
+            else if (path_cost[value.first] > cost) {
                 pred[value.first] = curr.first.second.first;
                 path_cost[value.first] = cost;
                 v.enqueue(std::make_pair(std::make_pair(goal, std::make_pair(value.first, curr_visited)), cost));
@@ -225,9 +284,4 @@ dijkstra_return graph::dijkstra_returning_visited
         }
     }
     return std::make_pair(pred, INT_MAX);
-}
-
-void graph::map_whole_path(const std::string& start, std::vector<std::string> goals) {
-    std::string result = this->super_dijkstra(start, goals);
-    std::cout << result << std::endl;
-}
+}*/

@@ -94,6 +94,21 @@ namespace std
             return seed;
         }
     };
+
+    template<class T>
+    struct hash<std::vector<T>>
+    {
+        typedef vector<T> argument_type;
+        typedef std::size_t result_type;
+        result_type operator()(argument_type const& in) const {
+            std::size_t size = in.size();
+            std::size_t seed = 0;
+            for (std::size_t i = 0; i < size; i++) {
+                hash_combine(seed, in[i]);
+            }
+            return seed;
+        }
+    };
 }
 
 template <class T>
@@ -109,7 +124,7 @@ class graph {
         pred_map bfs(const std::string&, const std::string& = std::string());
         dijkstra_return dijkstra(const std::string&, const std::string&);
         std::string super_dijkstra(const std::string&, std::vector<std::string>);
-        dijkstra_return dijkstra_returning_visited(const std::string&, const std::string&, std::unordered_map<std::string, bool>&);
+        //dijkstra_return dijkstra_returning_visited(const std::string&, const std::string&, std::unordered_map<std::string, bool>&);
     public:
         void insert(const std::string&);
         void print();

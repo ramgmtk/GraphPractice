@@ -20,7 +20,7 @@ int main(int argc, char** argv) {
     //dijkstra's
     //g.map_path("1", "8");
     //super dijkstra's
-    std::vector<std::string> x = {"2", "8"};
+    std::vector<std::string> x = {"2", "8", "4"};
     g.map_whole_path("1", x);
 
     system("pause");
